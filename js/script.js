@@ -6,7 +6,7 @@ icons = document.querySelectorAll(".row i");
 translateBtn = document.querySelector("button"),
 selectTag.forEach((tag, id) => {
     for (let country_code in countries) {
-        let selected = id == 0 ? country_code == "en-GB" ? "selected" : "" : country_code == "hi-IN" ? "selected" : "";
+        let selected = id == 0 ? country_code == "en" ? "selected" : "" : country_code == "hi" ? "selected" : "";
         let option = `<option ${selected} value="${country_code}">${countries[country_code]}</option>`;
         tag.insertAdjacentHTML("beforeend", option);
     }
@@ -24,23 +24,48 @@ fromText.addEventListener("keyup", () => {
         toText.value = "";
     }
 });
-translateBtn.addEventListener("click", () => {
-    let text = fromText.value.trim(),
-    translateFrom = selectTag[0].value,
-    translateTo = selectTag[1].value;
-    if(!text) return;
-    toText.setAttribute("placeholder", "Translating...");
-    let apiUrl = `https://api.mymemory.translated.net/get?q=${text}&langpair=${translateFrom}|${translateTo}`;
-    fetch(apiUrl).then(res => res.json()).then(data => {
-      console.log(translateFrom, translateTo, data);      
-        toText.value = data.responseData.translatedText;
-        data.matches.forEach(data => {
-            if(data.id === 0) {
-                toText.value = data.translation;
-            }
-        });
-        toText.setAttribute("placeholder", "Translation");
-    });
+translateBtn.addEventListener("click", async() => {
+    try{
+        let text = fromText.value.trim(),
+        translateFrom = selectTag[0].value,
+        translateTo = selectTag[1].value;
+        if(!text){
+            alert("Please enter text to translate");
+            return;
+        }
+        toText.setAttribute("placeholder", "Translating...");
+        let apiUrl = await `https://lingva.ml/api/v1/${translateFrom}/${translateTo}/${encodeURIComponent(text)}`;
+        console.log(apiUrl)
+        
+        const response = await fetch(apiUrl);
+        if(!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        if (!data || !data.translation) {
+            throw new Error('No translation found! Please try again.');
+        }
+
+        toText.value = data.translation;    
+        if (data.matches) {
+            data.matches.forEach(match => {
+                if (match.id === 0 && match.translation) {
+                    toText.value = match.translation;
+                    console.log(match.translation);
+                    
+                }
+            });
+        }
+    } catch (error) {
+        console.error('Translation error:', error);
+        toText.value = "";
+        toText.setAttribute("placeholder", "Failed to translate");
+        alert(`Translation Error: ${error.message}`);
+    } finally {
+        if (toText.getAttribute("placeholder") === "Translating...") {
+            toText.setAttribute("placeholder", "Translation");
+        }
+    }
 });
 icons.forEach(icon => {
     icon.addEventListener("click", ({target}) => {

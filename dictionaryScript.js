@@ -49,12 +49,24 @@ searchInput.addEventListener("keyup", e =>{
         fetchApi(word);
     }
 });
-volume.addEventListener("click", ()=>{
-    volume.style.color = "#4D59FB";
-    audio.play();
-    setTimeout(() =>{
-        volume.style.color = "#999";
-    }, 800);
+volume.addEventListener("click", () => {
+    if (audio) {
+        audio.onerror = () => {
+            alert("The audio for this word is not playable.");
+        };
+        audio.play()
+            .then(() => {
+                volume.style.color = "#4D59FB";
+                setTimeout(() => {
+                    volume.style.color = "#999";
+                }, 800);
+            })
+            .catch(() => {
+                alert("The audio cannot be played. Please check your connection or try another word.");
+            });
+    } else {
+        alert("No audio available for this word.");
+    }
 });
 removeIcon.addEventListener("click", ()=>{
     searchInput.value = "";

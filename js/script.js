@@ -5,6 +5,10 @@ selectTag = document.querySelectorAll("select"),
 icons = document.querySelectorAll(".row i");
 translateBtn = document.querySelector("button"),
 selectTag.forEach((tag, id) => {
+    tag.addEventListener('change', () => {
+        toText.value = "";
+        toText.setAttribute("placeholder", "Translation");
+    });
     for (let country_code in countries) {
         let selected = id == 0 ? country_code == "en" ? "selected" : "" : country_code == "hi" ? "selected" : "";
         let option = `<option ${selected} value="${country_code}">${countries[country_code]}</option>`;
@@ -42,6 +46,7 @@ translateBtn.addEventListener("click", async() => {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
+        console.log(data);        
         if (!data || !data.translation) {
             throw new Error('No translation found! Please try again.');
         }
@@ -57,7 +62,6 @@ translateBtn.addEventListener("click", async() => {
             });
         }
     } catch (error) {
-        console.error('Translation error:', error);
         toText.value = "";
         toText.setAttribute("placeholder", "Failed to translate");
         alert(`Translation Error: ${error.message}`);
